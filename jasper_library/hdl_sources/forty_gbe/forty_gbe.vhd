@@ -2268,12 +2268,14 @@ begin
     shmc_mezz1_scl_in <= MEZZANINE_1_SCL_FPGA;
     shmc_mezz1_sda_in <= MEZZANINE_1_SDA_FPGA; 
 
-    MEZZANINE_2_SCL_FPGA <= shmc_mezz2_scl_out when (HMC_MEZZ2_INIT_DONE = '0') else  i2c_scl_pad_o(3) when (i2c_scl_padoen_o(3) = '0') else 'Z';
-    MEZZANINE_2_SDA_FPGA <= shmc_mezz2_sda_out when (HMC_MEZZ2_INIT_DONE = '0') else  i2c_sda_pad_o(3) when (i2c_sda_padoen_o(3) = '0') else 'Z';
+    --MEZZANINE_2_SCL_FPGA <= shmc_mezz2_scl_out when (HMC_MEZZ2_INIT_DONE = '0') else  i2c_scl_pad_o(3) when (i2c_scl_padoen_o(3) = '0') else 'Z';
+    --MEZZANINE_2_SDA_FPGA <= shmc_mezz2_sda_out when (HMC_MEZZ2_INIT_DONE = '0') else  i2c_sda_pad_o(3) when (i2c_sda_padoen_o(3) = '0') else 'Z';
+    MEZZANINE_2_SCL_FPGA <= i2c_scl_pad_o(3) when (i2c_scl_padoen_o(3) = '0') else 'Z';
+    MEZZANINE_2_SDA_FPGA <= i2c_sda_pad_o(3) when (i2c_sda_padoen_o(3) = '0') else 'Z';
     i2c_scl_pad_i(3) <= MEZZANINE_2_SCL_FPGA;
     i2c_sda_pad_i(3) <= MEZZANINE_2_SDA_FPGA;
-    shmc_mezz2_scl_in <= MEZZANINE_2_SCL_FPGA;
-    shmc_mezz2_sda_in <= MEZZANINE_2_SDA_FPGA; 
+    --shmc_mezz2_scl_in <= MEZZANINE_2_SCL_FPGA;
+    --shmc_mezz2_sda_in <= MEZZANINE_2_SDA_FPGA; 
     
     --HMC Mezzanine 0 signal assignments 
     shmc_mezz0_scl_out <= HMC_MEZZ0_SCL_IN;

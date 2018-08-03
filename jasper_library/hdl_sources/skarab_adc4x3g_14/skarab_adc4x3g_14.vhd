@@ -31,6 +31,9 @@ entity SKARAB_ADC4x3G_14 is
 	port(
         FREE_RUN_156M25HZ_CLK_IN : in std_logic;
 	   	
+        MEZZANINE_RESET : out std_logic;
+        MEZZANINE_CLK_SEL : out std_logic;
+		
         ADC_MEZ_REFCLK_0_P : in std_logic;
         ADC_MEZ_REFCLK_0_N : in std_logic;       
         ADC_MEZ_PHY11_LANE_RX_P : in std_logic_vector(3 downto 0);
@@ -166,9 +169,41 @@ architecture arch_SKARAB_ADC4x3G_14 of SKARAB_ADC4x3G_14 is
 
     signal block_capture_sync_ready : std_logic_vector(0 to 3);
     signal block_capture_sync_output_enable : std_logic; 
+	
+	signal ADC_MEZ_PHY12_LANE_RX_P_swapped : std_logic_vector(3 downto 0);
+    signal ADC_MEZ_PHY12_LANE_RX_N_swapped : std_logic_vector(3 downto 0);
+	signal ADC_MEZ_PHY22_LANE_RX_P_swapped : std_logic_vector(3 downto 0);
+    signal ADC_MEZ_PHY22_LANE_RX_N_swapped : std_logic_vector(3 downto 0);	
     
 begin
-    
+   
+	MEZZANINE_CLK_SEL <= '1'; -- DEFAULT '1' = MEZZANINE CLOCK
+	MEZZANINE_RESET <= '0'; -- NO EXTRA RESET REQUIRED
+	
+---------------------------------------------------------------------------------------------------------
+-- CORRECT FOR SWAP IN YAML FILE, SAME FOR ALL MEZZANINE SITES
+---------------------------------------------------------------------------------------------------------
+	
+	ADC_MEZ_PHY12_LANE_RX_P_swapped(0) <= ADC_MEZ_PHY12_LANE_RX_P(3);
+	ADC_MEZ_PHY12_LANE_RX_P_swapped(1) <= ADC_MEZ_PHY12_LANE_RX_P(2);
+	ADC_MEZ_PHY12_LANE_RX_P_swapped(2) <= ADC_MEZ_PHY12_LANE_RX_P(1);
+	ADC_MEZ_PHY12_LANE_RX_P_swapped(3) <= ADC_MEZ_PHY12_LANE_RX_P(0);
+
+	ADC_MEZ_PHY12_LANE_RX_N_swapped(0) <= ADC_MEZ_PHY12_LANE_RX_N(3);
+	ADC_MEZ_PHY12_LANE_RX_N_swapped(1) <= ADC_MEZ_PHY12_LANE_RX_N(2);
+	ADC_MEZ_PHY12_LANE_RX_N_swapped(2) <= ADC_MEZ_PHY12_LANE_RX_N(1);
+	ADC_MEZ_PHY12_LANE_RX_N_swapped(3) <= ADC_MEZ_PHY12_LANE_RX_N(0);
+	
+	ADC_MEZ_PHY22_LANE_RX_P_swapped(0) <= ADC_MEZ_PHY22_LANE_RX_P(3);
+	ADC_MEZ_PHY22_LANE_RX_P_swapped(1) <= ADC_MEZ_PHY22_LANE_RX_P(2);
+	ADC_MEZ_PHY22_LANE_RX_P_swapped(2) <= ADC_MEZ_PHY22_LANE_RX_P(1);
+	ADC_MEZ_PHY22_LANE_RX_P_swapped(3) <= ADC_MEZ_PHY22_LANE_RX_P(0);
+
+	ADC_MEZ_PHY22_LANE_RX_N_swapped(0) <= ADC_MEZ_PHY22_LANE_RX_N(3);
+	ADC_MEZ_PHY22_LANE_RX_N_swapped(1) <= ADC_MEZ_PHY22_LANE_RX_N(2);
+	ADC_MEZ_PHY22_LANE_RX_N_swapped(2) <= ADC_MEZ_PHY22_LANE_RX_N(1);
+	ADC_MEZ_PHY22_LANE_RX_N_swapped(3) <= ADC_MEZ_PHY22_LANE_RX_N(0);	
+	
 ---------------------------------------------------------------------------------------------------------
 -- ADC SYNC BUFFERS
 ---------------------------------------------------------------------------------------------------------
@@ -293,8 +328,8 @@ begin
         SYS_CLK_I         => FREE_RUN_156M25HZ_CLK_IN,
         SOFT_RESET_IN     => adc_soft_reset,
         GTREFCLK_IN       => adc1_gtrefclk,
-        RXN_I             => ADC_MEZ_PHY12_LANE_RX_N,
-        RXP_I             => ADC_MEZ_PHY12_LANE_RX_P,
+        RXN_I             => ADC_MEZ_PHY12_LANE_RX_N_swapped,
+        RXP_I             => ADC_MEZ_PHY12_LANE_RX_P_swapped,
         ADC_SYNC_O        => adc_sync_in(1),
         GT_RXUSRCLK2_O    => open,
         DBG_M_AXIS_TVALID => open,
@@ -389,8 +424,8 @@ begin
         SYS_CLK_I         => FREE_RUN_156M25HZ_CLK_IN,
         SOFT_RESET_IN     => adc_soft_reset,
         GTREFCLK_IN       => adc3_gtrefclk,
-        RXN_I             => ADC_MEZ_PHY22_LANE_RX_N,
-        RXP_I             => ADC_MEZ_PHY22_LANE_RX_P,
+        RXN_I             => ADC_MEZ_PHY22_LANE_RX_N_swapped,
+        RXP_I             => ADC_MEZ_PHY22_LANE_RX_P_swapped,
         ADC_SYNC_O        => adc_sync_in(3),
         GT_RXUSRCLK2_O    => open,
         DBG_M_AXIS_TVALID => open,
