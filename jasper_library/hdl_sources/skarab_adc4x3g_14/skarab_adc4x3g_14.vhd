@@ -116,7 +116,8 @@ end SKARAB_ADC4x3G_14;
 
 architecture arch_SKARAB_ADC4x3G_14 of SKARAB_ADC4x3G_14 is
 
-	constant C_ADC_AXIS_TDATA_WIDTH : integer := 128;
+	constant C_ADC_AXIS_TDATA_WIDTH : integer                      := 128;
+	constant c_adc_sync_offset      : std_logic_vector(3 downto 0) := "1000";
 	
 	component ADC32RF45_7G5_DEC4_RX is
 	generic(
@@ -147,6 +148,7 @@ architecture arch_SKARAB_ADC4x3G_14 of SKARAB_ADC4x3G_14 is
 		reset                     : in  std_logic;
 		adc_sysref_clk            : in  std_logic;
 		adc_reference_input_clk   : in  std_logic;
+		adc_sync_offset           : in  std_logic_vector(3 downto 0); -- GT 15/9/2021 PROVIDE PROGRAMMABLE CONTROL OVER LOCATION OF ADC SYNC
 		adc_sync_start            : in  std_logic;
 		adc_sync_part2_start      : in  std_logic;
 		adc_sync_part3_start      : in  std_logic;
@@ -603,6 +605,7 @@ begin
 		reset                     => FREE_RUN_156M25HZ_RST_IN,
 		adc_sysref_clk            => adc_sysref_clk,
 		adc_reference_input_clk   => adc_reference_input_clk,
+		adc_sync_offset           => c_adc_sync_offset,
 		adc_sync_start            => adc_sync_start_in_synced_i,
 		adc_sync_part2_start      => adc_sync_part2_start_in_synced_i,
 		adc_sync_part3_start      => adc_sync_part3_start_in_synced_i,

@@ -57,7 +57,7 @@ architecture ADC32RF45_11G2_RX_ARC of ADC32RF45_7G5_DEC4_RX is
 	type stdlvec_arr_4bx4   is array (0 to 3)  of std_logic_vector(3 downto 0);
 	type stdlvec_arr_2bx4   is array (0 to 3)  of std_logic_vector(1 downto 0);
 	type stdlvec_arr_12bx20 is array (0 to 20) of std_logic_vector(11 downto 0);
-	type unsigned_arr_4bx4  is array (0 to 3)  of unsigned(3 downto 0);
+	type unsigned_arr_5bx4  is array (0 to 3)  of unsigned(4 downto 0);
 	type unsigned_arr_3bx4  is array (0 to 3)  of unsigned(2 downto 0);
 
 	----------------------------------------------
@@ -171,7 +171,7 @@ architecture ADC32RF45_11G2_RX_ARC of ADC32RF45_7G5_DEC4_RX is
 	signal chbnd_detk28p3_z2  : std_logic_vector(3 downto 0) := "0000";
 	signal chbnd_done         : std_logic                    := '0';
 	signal chbnd_done_z1      : std_logic                    := '0';
-	signal chbnd_plsfreq_cnt  : unsigned_arr_4bx4            := (others => "1000"); -- 8
+	signal chbnd_plsfreq_cnt  : unsigned_arr_5bx4            := (others => "10000"); -- 16
 	signal chbnd_plsfreq_err  : std_logic_vector(3 downto 0) := "0000";
 	signal chbnd_plsnum_cnt   : unsigned_arr_3bx4            := (others => "000");
 	signal chbnd_plsnum_err   : std_logic_vector(3 downto 0) := "0000";
@@ -1029,7 +1029,7 @@ begin
 				chbnd_detk28p3_z2  <= "0000";
 				chbnd_done         <= '0';
 				chbnd_done_z1      <= '0';
-				chbnd_plsfreq_cnt  <= (others => "1000"); -- 8
+				chbnd_plsfreq_cnt  <= (others => "10000"); -- 16
 				chbnd_plsfreq_err  <= "0000";
 				chbnd_plsnum_cnt   <= (others => "000");
 				chbnd_plsnum_err   <= "0000";
@@ -1076,15 +1076,15 @@ begin
 					-- Check for k28p3 frequency errors
 					for i in 0 to 3 loop
 						if chbnd_detk28p3_z1(i) = '1' then
-							chbnd_plsfreq_cnt(i) <= to_unsigned(0, 4);
+							chbnd_plsfreq_cnt(i) <= to_unsigned(0, 5);
 						else
-							if chbnd_plsfreq_cnt(i) <= 7 then -- count up to 8
+							if chbnd_plsfreq_cnt(i) <= 15 then -- count up to 16
 								chbnd_plsfreq_cnt(i) <= chbnd_plsfreq_cnt(i) + 1;
 							end if;
 						end if;
 						if chbnd_detk28p3_z1(i) = '1' then
 							if chbnd_plsnum_cnt(i) >= 1 then
-								if chbnd_plsfreq_cnt(i) /= 7 then
+								if chbnd_plsfreq_cnt(i) /= 15 then
 									chbnd_plsfreq_err(i) <= '1';
 								end if;
 							end if;
