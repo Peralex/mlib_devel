@@ -28,8 +28,11 @@ use unisim.vcomponents.all;
 
 entity SKARAB_ADC4x3G_14_BYP is
 generic (
-		ADC_SYNC_MASTER : integer := 1;
-		ADC_SYNC_SLAVE  : integer := 0);
+		ADC_SYNC_MASTER               : integer := 1;
+		ADC_SYNC_SLAVE                : integer := 0;
+		TRIGGER_IS_OUTPUT             : integer := 1;     -- GT 26/06/2023
+		TRIGGER_IS_INPUT              : integer := 0;     -- GT 26/06/2023		
+		ENABLE_INT4_DEC5_RESAMPLER    : integer := 0);    -- GT 01/06/2023		
 port(
 		wb_clk_i : in  std_logic;
 		wb_rst_i : in  std_logic;
@@ -49,6 +52,12 @@ port(
 		MEZZANINE_RESET   : out std_logic;
 		MEZZANINE_CLK_SEL : out std_logic;
 		MEZZANINE_FAULT_N : in  std_logic;
+        MEZZANINE_ENABLE_N  : out std_logic; -- GT 26/06/2023
+        MEZZANINE_INT_N     : in std_logic; -- GT 26/06/2023
+        
+        TRIGGER_OUT : in std_logic; -- GT 26/06/2023
+        TRIGGER_IN  : out std_logic; -- GT 26/06/2023
+        PPS_IN      : out std_logic; -- GT 26/06/2023		
 
 		ADC_MEZ_REFCLK_0_P : in std_logic;
 		ADC_MEZ_REFCLK_0_N : in std_logic;       
@@ -118,9 +127,34 @@ architecture arch_SKARAB_ADC4x3G_14_BYP of SKARAB_ADC4x3G_14_BYP is
 
 	constant C_ADC_AXIS_TDATA_WIDTH : integer := 128;
 	
-    component ADC32RF45_11G2_RX is
+-- GT 01/06/2023 REPLACE BY VERSION THAT INCLUDES RESAMPLER	
+--    component ADC32RF45_11G2_RX is
+--	generic(
+--		RX_POLARITY_INVERT : std_logic_vector(3 downto 0) := "0000"); 
+--	port(
+--		SYS_CLK_I                : in  std_logic;
+--		SYS_RST_I                : in  std_logic;
+--		SOFT_RESET_IN            : in  std_logic;
+--		PLL_SYNC_START           : in  std_logic;
+--		GTREFCLK_IN              : in  std_logic;
+--		RXN_I                    : in  std_logic_vector(3 downto 0);
+--		RXP_I                    : in  std_logic_vector(3 downto 0);
+--		ADC_SYNC_O               : out std_logic;
+--		GT_RXUSRCLK2_O           : out std_logic;
+--		ADC_DATA_CLOCK           : in  std_logic;
+--		ADC_DATA_16X12B_OUT      : out std_logic_vector(191 downto 0);
+--		ADC_DATA_16X12B_VAL_OUT  : out std_logic;
+--		ADC_PLL_ARESET           : out std_logic;
+--		ADC_PLL_LOCKED           : in  std_logic;
+--		STATUS_O                 : out std_logic_vector(31 downto 0);
+--		GBXF_RDEN_OUT            : out std_logic;
+--		GBXF_RDEN_IN             : in  std_logic);
+--    end component;
+
+    component ADC32RF45_11G2_RX_INAF is
 	generic(
-		RX_POLARITY_INVERT : std_logic_vector(3 downto 0) := "0000"); 
+		RX_POLARITY_INVERT            : std_logic_vector(3 downto 0) := "0000";
+		ENABLE_INT4_DEC5_RESAMPLER    : integer := 0);
 	port(
 		SYS_CLK_I                : in  std_logic;
 		SYS_RST_I                : in  std_logic;
@@ -138,9 +172,10 @@ architecture arch_SKARAB_ADC4x3G_14_BYP of SKARAB_ADC4x3G_14_BYP is
 		ADC_PLL_LOCKED           : in  std_logic;
 		STATUS_O                 : out std_logic_vector(31 downto 0);
 		GBXF_RDEN_OUT            : out std_logic;
-		GBXF_RDEN_IN             : in  std_logic);
+		GBXF_RDEN_IN             : in  std_logic;
+		RESAMPLE_ENABLE	         : in  std_logic); -- 0 = ORIGINAL SAMPLE RATE (3GSPS OR 2.56GSPS), 1 = ENABLE 4/5 RESAMPLER TO ACHIEVE 2.048GSPS WHEN ADC AT 2.56GSPS		
     end component;
-
+    
 	component multi_skarab_adc_pll_sync_generator is
 	port (
 		clk                       : in std_logic;
@@ -293,6 +328,8 @@ architecture arch_SKARAB_ADC4x3G_14_BYP of SKARAB_ADC4x3G_14_BYP is
 	constant REGADR_RD_PLL_SYNC_COMPLETE    : std_logic_vector(7 downto 0) := x"2C";
 	constant REGADR_RD_ADC_SYNC_REQUEST     : std_logic_vector(7 downto 0) := x"30";
 	constant REGADR_WR_RESET_CORE           : std_logic_vector(7 downto 0) := x"34";
+    constant REGADR_WR_DECIMATION_RATE      : std_logic_vector(7 downto 0) := x"38";    -- GT 01/06/2023	
+    constant REGADR_WR_ENABLE_DOUT          : std_logic_vector(7 downto 0) := x"3C";
 	-- REGISTERS
 	signal wb_ack_o_i                  : std_logic                     := '0';
 	signal wb_dat_o_reg                : std_logic_vector(31 downto 0) := x"00000000";
@@ -303,6 +340,8 @@ architecture arch_SKARAB_ADC4x3G_14_BYP of SKARAB_ADC4x3G_14_BYP is
 	signal wb_reg_pll_pulse_gen_start  : std_logic                     := '0';
 	signal wb_reg_pll_sync_start       : std_logic                     := '0';
 	signal wb_reg_reset_core           : std_logic                     := '0';
+	signal wb_reg_resample_enable      : std_logic                     := '0'; -- GT 31/05/2023 ADDED RESAMPLER	
+    signal wb_reg_enable_dout          : std_logic                     := '0'; -- GT 02/06/2023 ADDED OUTPUT ENABLE TO MATCH DDC CORE
 	signal wb_stb_i_z                  : std_logic                     := '0';
 	signal wb_stb_i_z2                 : std_logic                     := '0';
 	-- CONNECTIONS
@@ -329,8 +368,42 @@ architecture arch_SKARAB_ADC4x3G_14_BYP of SKARAB_ADC4x3G_14_BYP is
 	signal pll_pulse_gen_start_in_synced_i  : std_logic;
 	signal mezzanine_reset_i                : std_logic;
 	
+	-- GT 02/06/2023 ADDED FOR CONSISTENCY WITH DDC CORE
+	signal enable_dout                      : std_logic;
+	signal ADC0_DATA_VAL_OUT_i              : std_logic;
+	signal ADC1_DATA_VAL_OUT_i              : std_logic;
+	signal ADC2_DATA_VAL_OUT_i              : std_logic;
+	signal ADC3_DATA_VAL_OUT_i              : std_logic;
+	
 begin
 
+---------------------------------------------------------------------------------------------------------
+-- GT 26/06/2023 SIDEBAND SIGNALES
+---------------------------------------------------------------------------------------------------------
+
+    -- ACCOUNT FOR INVERSION
+    PPS_IN <= not MEZZANINE_INT_N;
+    
+    generate_TRIGGER_IS_OUTPUT : if TRIGGER_IS_OUTPUT = 1 generate
+    
+        -- INVERTED ON MB AND IN DRIVER
+        MEZZANINE_ENABLE_N <= TRIGGER_OUT;
+        
+        -- MEZZANINE_FAULT_N NOT USED 
+        TRIGGER_IN <= '0';           
+    
+    end generate generate_TRIGGER_IS_OUTPUT;
+
+    generate_TRIGGER_IS_INPUT : if TRIGGER_IS_INPUT = 1 generate
+    
+        -- LEAVE ENABLED 
+        MEZZANINE_ENABLE_N <= '0';
+        -- TRIGGER_OUT NOT USED 
+
+        TRIGGER_IN <= MEZZANINE_FAULT_N;           
+    
+    end generate generate_TRIGGER_IS_INPUT;
+    
 ---------------------------------------------------------------------------------------------------------
 -- WISHBONE BUS INTERFACE
 ---------------------------------------------------------------------------------------------------------
@@ -357,6 +430,8 @@ begin
 			wb_reg_pll_pulse_gen_start  <= '0';
 			wb_reg_pll_sync_start       <= '0';
 			wb_reg_reset_core           <= '0';
+			wb_reg_enable_dout          <= '0'; -- GT 02/06/2023
+			wb_reg_resample_enable      <= '0'; -- GT 01/06/2023
 			wb_stb_i_z                  <= '0';
 			wb_stb_i_z2                 <= '0';
 		elsif (rising_edge(wb_clk_i))then
@@ -378,6 +453,10 @@ begin
 						wb_reg_mezzanine_reset <= wb_dat_i(0);
 					when REGADR_WR_RESET_CORE =>
 						wb_reg_reset_core <= wb_dat_i(0);
+                    when REGADR_WR_DECIMATION_RATE =>
+						wb_reg_resample_enable <= wb_dat_i(16); -- GT 01/06/2023
+					when REGADR_WR_ENABLE_DOUT =>
+						wb_reg_enable_dout <= wb_dat_i(0); -- GT 02/06/2023
 					when others =>
 				end case;
 			end if;
@@ -505,6 +584,9 @@ begin
 	tff_wb_reg_reset_core           : tff port map (FREE_RUN_156M25HZ_CLK_IN, wb_reg_reset_core,           wb_reg_reset_core_async          );
 	tff_wb_reg_mezzanine_reset      : tff port map (DSP_CLK_IN,               wb_reg_mezzanine_reset,      wb_reg_mezzanine_reset_async     );
 
+    -- GT 02/06/2023
+	tff_wb_reg_enable_dout          : tff port map (DSP_CLK_IN,               wb_reg_enable_dout,          enable_dout     );
+	
 	-- tff_adc_sync_complete_out   : tff port map (DSP_CLK_IN, adc_sync_complete_async,   ADC_SYNC_COMPLETE_OUT);
 	-- tff_adc_sync_request_out_0  : tff port map (DSP_CLK_IN, adc_sync_request_async(0), ADC_SYNC_REQUEST_OUT(0));
 	-- tff_adc_sync_request_out_1  : tff port map (DSP_CLK_IN, adc_sync_request_async(1), ADC_SYNC_REQUEST_OUT(1));
@@ -655,9 +737,33 @@ begin
     -- ADC_MEZ_PHY11 IS ADC0 CHANNEL B
     -- NOTE: POLARITY IS SWAPPED
     -- LANE ORDER: 0 to 0, 1 to 1, 2 to 2, 3 to 3
-	ADC32RF45_11G2_RX_0 : ADC32RF45_11G2_RX
+-- GT 01/06/2023 CHANGE FOR VERSION WHICH INCLUDES A RESAMPLER 
+--	ADC32RF45_11G2_RX_0 : ADC32RF45_11G2_RX
+--	generic map(
+--		RX_POLARITY_INVERT => "1111")
+--	port map(
+--		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
+--		SYS_RST_I                => wb_reg_reset_core_async,
+--		SOFT_RESET_IN            => adc_soft_reset,
+--		PLL_SYNC_START           => pll_sync_start_in_synced_i,
+--		GTREFCLK_IN              => adc0_gtrefclk,
+--		RXN_I                    => ADC_MEZ_PHY11_LANE_RX_N,
+--		RXP_I                    => ADC_MEZ_PHY11_LANE_RX_P,
+--		ADC_SYNC_O               => adc_sync_in(0),
+--		GT_RXUSRCLK2_O           => adc_user_clk,
+--		ADC_DATA_CLOCK           => DSP_CLK_IN,
+--		ADC_DATA_16X12B_OUT      => ADC0_DATA_OUT,
+--		ADC_DATA_16X12B_VAL_OUT  => ADC0_DATA_VAL_OUT,
+--		ADC_PLL_ARESET           => adc_pll_reset,
+--		ADC_PLL_LOCKED           => adc_rx_reset_n,
+--		STATUS_O                 => adc0_status,
+--		GBXF_RDEN_OUT            => adc0_gbxf_rden_out,
+--		GBXF_RDEN_IN             => adc0_gbxf_rden_in);
+
+	ADC32RF45_11G2_RX_0 : ADC32RF45_11G2_RX_INAF
 	generic map(
-		RX_POLARITY_INVERT => "1111")
+		RX_POLARITY_INVERT            => "1111",
+		ENABLE_INT4_DEC5_RESAMPLER    => ENABLE_INT4_DEC5_RESAMPLER)		
 	port map(
 		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
 		SYS_RST_I                => wb_reg_reset_core_async,
@@ -670,19 +776,44 @@ begin
 		GT_RXUSRCLK2_O           => adc_user_clk,
 		ADC_DATA_CLOCK           => DSP_CLK_IN,
 		ADC_DATA_16X12B_OUT      => ADC0_DATA_OUT,
-		ADC_DATA_16X12B_VAL_OUT  => ADC0_DATA_VAL_OUT,
+		ADC_DATA_16X12B_VAL_OUT  => ADC0_DATA_VAL_OUT_i,
 		ADC_PLL_ARESET           => adc_pll_reset,
 		ADC_PLL_LOCKED           => adc_rx_reset_n,
 		STATUS_O                 => adc0_status,
 		GBXF_RDEN_OUT            => adc0_gbxf_rden_out,
-		GBXF_RDEN_IN             => adc0_gbxf_rden_in);
-
+		GBXF_RDEN_IN             => adc0_gbxf_rden_in,
+		RESAMPLE_ENABLE          => wb_reg_resample_enable);
+		
     -- ADC_MEZ_PHY12 IS ADC0 CHANNEL A 
     -- NOTE: POLARITY IS NOT SWAPPED
     -- LANE ORDER: 3 to 0, 2 to 1, 1 to 2, 0 to 3
-	ADC32RF45_11G2_RX_1 : ADC32RF45_11G2_RX
+-- GT 01/06/2023 CHANGE FOR VERSION WHICH INCLUDES A RESAMPLER    
+--	ADC32RF45_11G2_RX_1 : ADC32RF45_11G2_RX
+--	generic map(
+--		RX_POLARITY_INVERT => "0000")
+--	port map(
+--		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
+--		SYS_RST_I                => wb_reg_reset_core_async,
+--		SOFT_RESET_IN            => adc_soft_reset,
+--		PLL_SYNC_START           => pll_sync_start_in_synced_i,
+--		GTREFCLK_IN              => adc1_gtrefclk,
+--		RXN_I                    => ADC_MEZ_PHY12_LANE_RX_N_swapped,
+--		RXP_I                    => ADC_MEZ_PHY12_LANE_RX_P_swapped,
+--		ADC_SYNC_O               => adc_sync_in(1),
+--		GT_RXUSRCLK2_O           => open,
+--		ADC_DATA_CLOCK           => DSP_CLK_IN,
+--		ADC_DATA_16X12B_OUT      => ADC1_DATA_OUT,
+--		ADC_DATA_16X12B_VAL_OUT  => ADC1_DATA_VAL_OUT,
+--		ADC_PLL_ARESET           => open,
+--		ADC_PLL_LOCKED           => adc_rx_reset_n,
+--		STATUS_O                 => adc1_status,
+--		GBXF_RDEN_OUT            => adc1_gbxf_rden_out,
+--		GBXF_RDEN_IN             => adc1_gbxf_rden_in);
+		
+	ADC32RF45_11G2_RX_1 : ADC32RF45_11G2_RX_INAF
 	generic map(
-		RX_POLARITY_INVERT => "0000")
+		RX_POLARITY_INVERT            => "0000",
+		ENABLE_INT4_DEC5_RESAMPLER    => ENABLE_INT4_DEC5_RESAMPLER)		
 	port map(
 		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
 		SYS_RST_I                => wb_reg_reset_core_async,
@@ -695,19 +826,44 @@ begin
 		GT_RXUSRCLK2_O           => open,
 		ADC_DATA_CLOCK           => DSP_CLK_IN,
 		ADC_DATA_16X12B_OUT      => ADC1_DATA_OUT,
-		ADC_DATA_16X12B_VAL_OUT  => ADC1_DATA_VAL_OUT,
+		ADC_DATA_16X12B_VAL_OUT  => ADC1_DATA_VAL_OUT_i,
 		ADC_PLL_ARESET           => open,
 		ADC_PLL_LOCKED           => adc_rx_reset_n,
 		STATUS_O                 => adc1_status,
 		GBXF_RDEN_OUT            => adc1_gbxf_rden_out,
-		GBXF_RDEN_IN             => adc1_gbxf_rden_in);
+		GBXF_RDEN_IN             => adc1_gbxf_rden_in,
+		RESAMPLE_ENABLE          => wb_reg_resample_enable);			
 
     -- ADC_MEZ_PHY21 IS ADC1 CHANNEL B
     -- NOTE: POLARITY IS SWAPPED
-    -- LANE ORDER: 0 to 0, 1 to 1, 2 to 2, 3 to 3    
-	ADC32RF45_11G2_RX_2 : ADC32RF45_11G2_RX
+    -- LANE ORDER: 0 to 0, 1 to 1, 2 to 2, 3 to 3 
+-- GT 01/06/2023 CHANGE FOR VERSION WHICH INCLUDES A RESAMPLER        
+--	ADC32RF45_11G2_RX_2 : ADC32RF45_11G2_RX
+--	generic map(
+--		RX_POLARITY_INVERT => "1111")
+--	port map(                    
+--		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
+--		SYS_RST_I                => wb_reg_reset_core_async,
+--		SOFT_RESET_IN            => adc_soft_reset,
+--		PLL_SYNC_START           => pll_sync_start_in_synced_i,
+--		GTREFCLK_IN              => adc2_gtrefclk,
+--		RXN_I                    => ADC_MEZ_PHY21_LANE_RX_N,
+--		RXP_I                    => ADC_MEZ_PHY21_LANE_RX_P,
+--		ADC_SYNC_O               => adc_sync_in(2),
+--		GT_RXUSRCLK2_O           => open,
+--		ADC_DATA_CLOCK           => DSP_CLK_IN,
+--		ADC_DATA_16X12B_OUT      => ADC2_DATA_OUT,
+--		ADC_DATA_16X12B_VAL_OUT  => ADC2_DATA_VAL_OUT,
+--		ADC_PLL_ARESET           => open,
+--		ADC_PLL_LOCKED           => adc_rx_reset_n,
+--		STATUS_O                 => adc2_status,
+--		GBXF_RDEN_OUT            => adc2_gbxf_rden_out,
+--		GBXF_RDEN_IN             => adc2_gbxf_rden_in);
+
+	ADC32RF45_11G2_RX_2 : ADC32RF45_11G2_RX_INAF
 	generic map(
-		RX_POLARITY_INVERT => "1111")
+		RX_POLARITY_INVERT            => "1111",
+		ENABLE_INT4_DEC5_RESAMPLER    => ENABLE_INT4_DEC5_RESAMPLER)		
 	port map(                    
 		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
 		SYS_RST_I                => wb_reg_reset_core_async,
@@ -720,19 +876,44 @@ begin
 		GT_RXUSRCLK2_O           => open,
 		ADC_DATA_CLOCK           => DSP_CLK_IN,
 		ADC_DATA_16X12B_OUT      => ADC2_DATA_OUT,
-		ADC_DATA_16X12B_VAL_OUT  => ADC2_DATA_VAL_OUT,
+		ADC_DATA_16X12B_VAL_OUT  => ADC2_DATA_VAL_OUT_i,
 		ADC_PLL_ARESET           => open,
 		ADC_PLL_LOCKED           => adc_rx_reset_n,
 		STATUS_O                 => adc2_status,
 		GBXF_RDEN_OUT            => adc2_gbxf_rden_out,
-		GBXF_RDEN_IN             => adc2_gbxf_rden_in);
-
+		GBXF_RDEN_IN             => adc2_gbxf_rden_in,
+		RESAMPLE_ENABLE          => wb_reg_resample_enable);		
+		
     -- ADC_MEZ_PHY22 IS ADC1 CHANNEL A
     -- NOTE: POLARITY IS NOT SWAPPED
-    -- LANE ORDER: 3 to 0, 2 to 1, 1 to 2, 0 to 3 
-	ADC32RF45_11G2_RX_3 : ADC32RF45_11G2_RX
+    -- LANE ORDER: 3 to 0, 2 to 1, 1 to 2, 0 to 3
+-- GT 01/06/2023 CHANGE FOR VERSION WHICH INCLUDES A RESAMPLER     
+--	ADC32RF45_11G2_RX_3 : ADC32RF45_11G2_RX
+--	generic map(
+--		RX_POLARITY_INVERT => "0000")
+--	port map(
+--		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
+--		SYS_RST_I                => wb_reg_reset_core_async,
+--		SOFT_RESET_IN            => adc_soft_reset,
+--		PLL_SYNC_START           => pll_sync_start_in_synced_i,
+--		GTREFCLK_IN              => adc3_gtrefclk,
+--		RXN_I                    => ADC_MEZ_PHY22_LANE_RX_N_swapped,
+--		RXP_I                    => ADC_MEZ_PHY22_LANE_RX_P_swapped,
+--		ADC_SYNC_O               => adc_sync_in(3),
+--		GT_RXUSRCLK2_O           => open,
+--		ADC_DATA_CLOCK           => DSP_CLK_IN,
+--		ADC_DATA_16X12B_OUT      => ADC3_DATA_OUT,
+--		ADC_DATA_16X12B_VAL_OUT  => ADC3_DATA_VAL_OUT,
+--		ADC_PLL_ARESET           => open,
+--		ADC_PLL_LOCKED           => adc_rx_reset_n,
+--		STATUS_O                 => adc3_status,
+--		GBXF_RDEN_OUT            => adc3_gbxf_rden_out,
+--		GBXF_RDEN_IN             => adc3_gbxf_rden_in);
+		
+	ADC32RF45_11G2_RX_3 : ADC32RF45_11G2_RX_INAF
 	generic map(
-		RX_POLARITY_INVERT => "0000")
+		RX_POLARITY_INVERT            => "0000",
+		ENABLE_INT4_DEC5_RESAMPLER    => ENABLE_INT4_DEC5_RESAMPLER)			
 	port map(
 		SYS_CLK_I                => FREE_RUN_156M25HZ_CLK_IN,
 		SYS_RST_I                => wb_reg_reset_core_async,
@@ -745,12 +926,14 @@ begin
 		GT_RXUSRCLK2_O           => open,
 		ADC_DATA_CLOCK           => DSP_CLK_IN,
 		ADC_DATA_16X12B_OUT      => ADC3_DATA_OUT,
-		ADC_DATA_16X12B_VAL_OUT  => ADC3_DATA_VAL_OUT,
+		ADC_DATA_16X12B_VAL_OUT  => ADC3_DATA_VAL_OUT_i,
 		ADC_PLL_ARESET           => open,
 		ADC_PLL_LOCKED           => adc_rx_reset_n,
 		STATUS_O                 => adc3_status,
 		GBXF_RDEN_OUT            => adc3_gbxf_rden_out,
-		GBXF_RDEN_IN             => adc3_gbxf_rden_in);
+		GBXF_RDEN_IN             => adc3_gbxf_rden_in,
+		RESAMPLE_ENABLE          => wb_reg_resample_enable);			
+		
 	adc0_gbxf_rden_in       <= adc_gbxf_rden_out_anded;
 	adc1_gbxf_rden_in       <= adc_gbxf_rden_out_anded;
 	adc2_gbxf_rden_in       <= adc_gbxf_rden_out_anded;
@@ -758,6 +941,11 @@ begin
 	adc_gbxf_rden_out_anded <= adc0_gbxf_rden_out and adc1_gbxf_rden_out and adc2_gbxf_rden_out and adc3_gbxf_rden_out;
 	adc_rx_reset_n          <= not DSP_RST_IN;
 	adc_sync_request_async  <= adc_sync_in;
+	
+	ADC0_DATA_VAL_OUT <= ADC0_DATA_VAL_OUT_i when enable_dout = '1' else '0';
+	ADC1_DATA_VAL_OUT <= ADC1_DATA_VAL_OUT_i when enable_dout = '1' else '0';
+	ADC2_DATA_VAL_OUT <= ADC2_DATA_VAL_OUT_i when enable_dout = '1' else '0';
+	ADC3_DATA_VAL_OUT <= ADC3_DATA_VAL_OUT_i when enable_dout = '1' else '0';
 	
 -------------------------------------------------------------------------
 -- ADC PLL
