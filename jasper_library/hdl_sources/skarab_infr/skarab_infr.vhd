@@ -70,7 +70,7 @@ entity skarab_infr is
         
         -- MEZZANINE 0 SIDEBAND SIGNALS
         MEZZANINE_0_PRESENT_N : in std_logic;
-        MEZZANINE_0_ENABLE_N : out std_logic;
+        --MEZZANINE_0_ENABLE_N : out std_logic; -- moved to mezzanine component
         --MEZZANINE_0_RESET : out std_logic;   --this is moved to the top.v now
         MEZZANINE_0_FAULT_N : in std_logic;
         MEZZANINE_0_ONE_WIRE : inout std_logic;
@@ -82,7 +82,7 @@ entity skarab_infr is
         
         -- MEZZANINE 1 SIDEBAND SIGNALS
         MEZZANINE_1_PRESENT_N : in std_logic;
-        MEZZANINE_1_ENABLE_N : out std_logic;
+        --MEZZANINE_1_ENABLE_N : out std_logic; -- moved to mezzanine component
         --MEZZANINE_1_RESET : out std_logic;   --this is moved to the top.v now
         MEZZANINE_1_FAULT_N : in std_logic;
         MEZZANINE_1_ONE_WIRE : inout std_logic;
@@ -94,7 +94,7 @@ entity skarab_infr is
 
         -- MEZZANINE 2 SIDEBAND SIGNALS
         MEZZANINE_2_PRESENT_N : in std_logic;
-        MEZZANINE_2_ENABLE_N : out std_logic;
+        --MEZZANINE_2_ENABLE_N : out std_logic; -- moved to mezzanine component
         --MEZZANINE_2_RESET : out std_logic;
         MEZZANINE_2_FAULT_N : in std_logic;
         MEZZANINE_2_ONE_WIRE : inout std_logic;
@@ -629,7 +629,7 @@ architecture arch_skarab_infr of skarab_infr is
     signal mezzanine_1_enable : std_logic;
     signal mezzanine_2_enable : std_logic;
     signal mezzanine_3_enable : std_logic;
-
+    
     signal mezzanine_0_fault_checking_enable : std_logic;
     signal mezzanine_1_fault_checking_enable : std_logic;
     signal mezzanine_2_fault_checking_enable : std_logic;
@@ -1423,9 +1423,9 @@ begin
     brd_user_read_regs(C_RD_MEZZANINE_STAT_0_ADDR)(19) <= not MEZZANINE_3_INT_N;
     brd_user_read_regs(C_RD_MEZZANINE_STAT_0_ADDR)(31 downto 20) <= (others => '0');
 
-    mezzanine_0_enable <= brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(0);
-    mezzanine_1_enable <= brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(1);
-    mezzanine_2_enable <= brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(2);
+    mezzanine_0_enable <= '0'; -- moved to mezzanine component brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(0);
+    mezzanine_1_enable <= '0'; -- moved to mezzanine component brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(1);
+    mezzanine_2_enable <= '0'; -- moved to mezzanine component brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(2);
     mezzanine_3_enable <= brd_user_write_regs(C_WR_MEZZANINE_CTL_ADDR)(3);
     
     --HMC status signals synchronised to the bsp_clk
@@ -1516,9 +1516,9 @@ begin
         mezzanine_enable                 => mezzanine_3_enable,
         mezzanine_fault_checking_enable  => mezzanine_3_fault_checking_enable);
 
-    MEZZANINE_0_ENABLE_N <= not mezzanine_0_enable;
-    MEZZANINE_1_ENABLE_N <= not mezzanine_1_enable;
-    MEZZANINE_2_ENABLE_N <= not mezzanine_2_enable;
+    --MEZZANINE_0_ENABLE_N <= not mezzanine_0_enable;   -- moved to mezzanine component
+    --MEZZANINE_1_ENABLE_N <= not mezzanine_1_enable;   -- moved to mezzanine component
+    --MEZZANINE_2_ENABLE_N <= not mezzanine_2_enable;   -- moved to mezzanine component
     MEZZANINE_3_ENABLE_N <= not mezzanine_3_enable;
 
     --MEZZANINE_3_ENABLE_N <= not mezzanine_3_enable;
