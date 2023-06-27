@@ -106,7 +106,7 @@ print("-------------------------------------")
 # 2. SCRIPT CONFIG
 # -----------------------------------------------------------------
 # 2.1 SET THE FPG FILE DIRECTORY
-fpg_file_dir = "fpg_files/test_skarab_adc_byp_sysclk.fpg"
+fpg_file_dir = "fpg_files/test_skarab_adc_byp.fpg"
 
 # 2.2 ENABLE FPG FILE UPLOAD OR NOT 
 # - If the fpg file is already uploaded it is not required to 
@@ -120,7 +120,7 @@ upload_fpg_file = 'y' # Other options: 'n'
 #   Master SKARAB ADC Yellow Block in the fpg file uploaded to 
 #   its SKARAB system will be the master while all other SKARAB ADC 
 #   boards in the hardware setup will be the slaves.
-skarab_ips = ['10.0.7.3', '10.0.7.4'] # Other options: ['10.0.7.3']; etc
+skarab_ips = ['10.0.7.2'] # Other options: ['10.0.7.3']; etc
 
 # 2.4 SET THE NYQUIST ZONE FOR WHICH THE SKARAB ADC BOARDS SHOULD BE OPTIMISED
 # - Available Options: sd.FIRST_NYQ_ZONE  (First Nyquist zone)
@@ -154,7 +154,16 @@ channels_to_test = [0, 1, 2, 3] # Other options: [0]; [0, 2]; etc
 
 # 2.9 SET THE DECIMATION RATE (ONLY APPLICABLE WHEN USING THE DDC
 #     BANDWIDTH MODE)
-decimation_ratio = 4 # Other options: 8; 16, 32
+decimation_ratio = 16 # Other options: 8; 16, 32, 64, 128
+
+# 2.10 SET THE SAMPLE RATE
+# The supported options are:
+#   sd.SAMPLE_RATE_FULL
+#   sd.SAMPLE_RATE_2G56SPS
+#   sd.SAMPLE_RATE_2G048SPS
+# The SAMPLE_RATE_FULL is 3 GSPS when the DDC Mode SKARAB ADC Yellow Block is used
+# and 2.8 GSPS when the bypass mode SKARAB ADC Yellow Block is used
+sample_rate = sd.SAMPLE_RATE_FULL # Other options: sd.SAMPLE_RATE_2G56SPS; sd.SAMPLE_RATE_2G048SPS
 
 # -----------------------------------------------------------------
 # 3. CONNECT TO SKARAB HARDWARE AND UPLOAD FPG FILE
@@ -269,7 +278,7 @@ print("SETTING UP SKARAB ADC(s)")
 print("------------------------")
 print("Configuring SKARAB ADC boards...")
 for i in range(skarab_adc_num):
-	skarab_adcs[i].configure_skarab_adc(nyquist_zone, decimation_ratio)
+	skarab_adcs[i].configure_skarab_adc(nyquist_zone, decimation_ratio, sample_rate)
 
 # -----------------------------------------------------------------
 # 8. SET DATA MODE
