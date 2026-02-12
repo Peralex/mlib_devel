@@ -157,7 +157,7 @@ i = 0
 #sIPAddress = '10.0.7.3'
 filename = str(raw_input("Specify BIN file name (Example: EMB124901U8R2_DDC.bin): "))
 uMezzanine = int(raw_input("Specify mezzanine site (Example: 1): "))
-sYbName = str(raw_input("Specify Yellow Block name (Examples: skarab_adc4x3g_14_master, skarab_adc4x3g_14_slave): "))
+sYbName = str(raw_input("Specify Yellow Block name (Examples: skarab_adc4x3g_14_master, skarab_adc4x3g_14_slave, skarab_adc4x3g_14): "))
 sIPAddress = str(raw_input("Specify IP address of the SKARAB (Example: 10.0.7.2): "))
 
 i2c_interface = uMezzanine + 1
@@ -226,13 +226,13 @@ dTotalTransferIdx = (uImageSize / (MAX_I2C_TRANSMIT_BYTES - 7))
 
 #Check if the image size is a multiple of the number of the bytes transferred per transaction
 if ((uImageSize % (MAX_I2C_TRANSMIT_BYTES - 7)) == 0):
-	 uTransferIdx = 1
-	 while (uTransferIdx <= math.floor((uImageSize / (MAX_I2C_TRANSMIT_BYTES - 7)))):
+	uTransferIdx = 1
+	while (uTransferIdx <= math.floor((uImageSize / (MAX_I2C_TRANSMIT_BYTES - 7)))):
 		uTx[1] = (ulnTempAddr >> 24) & 0xFFFF
 		uTx[2] = (ulnTempAddr >> 16) & 0xFFFF
 		uTx[3] = (ulnTempAddr >> 8) & 0xFFFF
 		uTx[4] = (ulnTempAddr >> 0) & 0xFFFF
-		
+
 		uByteIdx = 7
 		while(uByteIdx < MAX_I2C_TRANSMIT_BYTES):
 			if ((uTransBufInc + (uByteIdx - 7)) < uImageSize) :
