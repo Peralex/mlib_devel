@@ -679,9 +679,13 @@ begin
 				end loop;
 
 				-- After counting 2048 (128 x 4 x 4) K28.5 comma characters, assert the k28p5det_done signal
+				-- GT 10/02/2026 CHANGE DECIMATE BY 16 TO USE SAME JESD MODE AS DECIMATE BY 8
+				--if (((k28p5det_valid = x"F")and(DECIMATION_RATE_sync = "000"))or -- DEC 4
+				--((k28p5det_valid(1 downto 0) = "11")and(DECIMATION_RATE_sync = "001"))or -- DEC 8
+				--((k28p5det_valid(1) = '1')and(DECIMATION_RATE_sync(2 downto 1) /= "00")))then -- DEC 16 or DEC 32
+
 				if (((k28p5det_valid = x"F")and(DECIMATION_RATE_sync = "000"))or -- DEC 4
-				((k28p5det_valid(1 downto 0) = "11")and(DECIMATION_RATE_sync = "001"))or -- DEC 8
-				((k28p5det_valid(1) = '1')and(DECIMATION_RATE_sync(2 downto 1) /= "00")))then -- DEC 16 or DEC 32
+				((k28p5det_valid(1 downto 0) = "11")and(DECIMATION_RATE_sync /= "000")))then -- DEC 8, 16, ETC
 				
 					if k28p5det_cnt < 128 then
 						k28p5det_cnt <= k28p5det_cnt + 1;
@@ -746,9 +750,13 @@ begin
 					end loop;
 					
 					-- Data valid assertion
+					-- GT 10/02/2026 CHANGE DECIMATE BY 16 TO USE SAME JESD MODE AS DECIMATE BY 8
+					--if (((chbnd_datval = X"F")and(DECIMATION_RATE_sync = "000"))or -- DEC 4
+					--((chbnd_datval(1 downto 0) = "11")and(DECIMATION_RATE_sync = "001"))or -- DEC 8
+					--((chbnd_datval(1) = '1')and(DECIMATION_RATE_sync(2 downto 1) /= "00")))then -- DEC 16 or DEC 32
+
 					if (((chbnd_datval = X"F")and(DECIMATION_RATE_sync = "000"))or -- DEC 4
-					((chbnd_datval(1 downto 0) = "11")and(DECIMATION_RATE_sync = "001"))or -- DEC 8
-					((chbnd_datval(1) = '1')and(DECIMATION_RATE_sync(2 downto 1) /= "00")))then -- DEC 16 or DEC 32
+					((chbnd_datval(1 downto 0) = "11")and(DECIMATION_RATE_sync /= "000")))then -- DEC 8, 16, ETC
 						chbnd_done <= '1';
 					else
 						chbnd_done <= '0';
@@ -887,9 +895,13 @@ begin
 					end loop;
 					
 					-- Assert walgn_done if word alignment is completed on all lanes
+					-- GT 10/02/2026 CHANGE DECIMATE BY 16 TO USE SAME JESD MODE AS DECIMATE BY 8
+					--if (((walgn_ptr_set = x"F")and(DECIMATION_RATE_sync = "000"))or -- DEC 4
+					--((walgn_ptr_set(1 downto 0) = "11")and(DECIMATION_RATE_sync = "001"))or -- DEC 8
+					--((walgn_ptr_set(1) = '1')and(DECIMATION_RATE_sync(2 downto 1) /= "00")))then -- DEC 16 or DEC 32
+
 					if (((walgn_ptr_set = x"F")and(DECIMATION_RATE_sync = "000"))or -- DEC 4
-					((walgn_ptr_set(1 downto 0) = "11")and(DECIMATION_RATE_sync = "001"))or -- DEC 8
-					((walgn_ptr_set(1) = '1')and(DECIMATION_RATE_sync(2 downto 1) /= "00")))then -- DEC 16 or DEC 32
+					((walgn_ptr_set(1 downto 0) = "11")and(DECIMATION_RATE_sync /= "000")))then -- DEC 8, 16, ETC
 						walgn_done <= '1';
 					else
 						walgn_done <= '0';
@@ -918,9 +930,13 @@ begin
             if (walgn_done = '0')then
                 unfrm_128count <= 0;
             else	
+				-- GT 10/02/2026 CHANGE DECIMATE BY 16 TO USE SAME JESD MODE AS DECIMATE BY 8
+                --if ((DECIMATION_RATE_sync = "000")or -- DEC 4
+                --((DECIMATION_RATE_sync = "001")and(unfrm_128count = 1))or -- DEC 8
+                --((DECIMATION_RATE_sync(2 downto 1) /= "00")and(unfrm_128count = 3)))then -- DEC 16 or DEC 32
+
                 if ((DECIMATION_RATE_sync = "000")or -- DEC 4
-                ((DECIMATION_RATE_sync = "001")and(unfrm_128count = 1))or -- DEC 8
-                ((DECIMATION_RATE_sync(2 downto 1) /= "00")and(unfrm_128count = 3)))then -- DEC 16 or DEC 32
+                ((DECIMATION_RATE_sync /= "000")and(unfrm_128count = 1)))then -- DEC 8, 16, ETC
                     unfrm_128count <= 0;
                 else
                     unfrm_128count <= unfrm_128count + 1;
@@ -946,21 +962,27 @@ begin
                             walgn_algndat(3)(7 downto 0)   & walgn_algndat(3)(15 downto 8)  & walgn_algndat(1)(7 downto 0)   & walgn_algndat(1)(15 downto 8)  &
                             walgn_algndat(2)(7 downto 0)   & walgn_algndat(2)(15 downto 8)  & walgn_algndat(0)(7 downto 0)   & walgn_algndat(0)(15 downto 8);                    
                         unfrm_128bdat_wrreq <= '1';
-                    elsif (DECIMATION_RATE_sync = "001")then
+					-- GT 10/02/2026 CHANGE DECIMATE BY 16 TO USE SAME JESD MODE AS DECIMATE BY 8
+                    --elsif (DECIMATION_RATE_sync = "001")then
+                    --    unfrm_128bdat(63 downto 32) <= walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(0)(23 downto 16) & walgn_algndat(0)(31 downto 24);        	   
+                    --    unfrm_128bdat(31 downto 0) <= walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8) & walgn_algndat(0)(7 downto 0) & walgn_algndat(0)(15 downto 8);               
+                    --else
+                    --    unfrm_128bdat(31 downto 0) <=  walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8);
+                    --end if;               
+                    else
                         unfrm_128bdat(63 downto 32) <= walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(0)(23 downto 16) & walgn_algndat(0)(31 downto 24);        	   
                         unfrm_128bdat(31 downto 0) <= walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8) & walgn_algndat(0)(7 downto 0) & walgn_algndat(0)(15 downto 8);               
-                    else
-                        unfrm_128bdat(31 downto 0) <=  walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8);
                     end if;               
 
                     when 1 =>
-                    if (DECIMATION_RATE_sync = "001")then
+					-- GT 10/02/2026
+                    --if (DECIMATION_RATE_sync = "001")then
                         unfrm_128bdat(127 downto 96) <= walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(0)(23 downto 16) & walgn_algndat(0)(31 downto 24);        	   
                         unfrm_128bdat(95 downto 64) <= walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8) & walgn_algndat(0)(7 downto 0) & walgn_algndat(0)(15 downto 8);               
                         unfrm_128bdat_wrreq <= '1';
-                    else
-                        unfrm_128bdat(63 downto 32) <=  walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8);
-                    end if;
+                    --else
+                    --    unfrm_128bdat(63 downto 32) <=  walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8);
+                    --end if;
                     
                     when 2 =>
                     unfrm_128bdat(95 downto 64) <=  walgn_algndat(1)(23 downto 16) & walgn_algndat(1)(31 downto 24) & walgn_algndat(1)(7 downto 0) & walgn_algndat(1)(15 downto 8);

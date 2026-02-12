@@ -259,6 +259,11 @@ architecture arch_SKARAB_ADC4x3G_14 of SKARAB_ADC4x3G_14 is
 	signal adc_pll_reset  : std_logic;
 	signal adc_clk_187p5MHz : std_logic;
 	signal adc_user_clk   : std_logic;
+    signal adc_user_clk_mult2 : std_logic; -- GT 10/02/2026
+    signal adc_clk_sel : std_logic; -- GT 10/02/2026
+    signal adc_pll_enable : std_logic; -- GT 10/02/2026 
+    signal adc_pll_reset_i  : std_logic; -- GT 10/02/2026
+    signal adc_pll_locked_i : std_logic; -- GT 10/02/2026           	
 	
 	signal adc_sync_start_in_synced       : std_logic := '0';
 	signal adc_sync_part2_start_in_synced : std_logic := '0';
@@ -343,7 +348,7 @@ architecture arch_SKARAB_ADC4x3G_14 of SKARAB_ADC4x3G_14 is
 	constant REGADR_RD_PLL_SYNC_COMPLETE    : std_logic_vector(7 downto 0) := x"2C";
 	constant REGADR_RD_ADC_SYNC_REQUEST     : std_logic_vector(7 downto 0) := x"30";
 	constant REGADR_WR_RESET_CORE           : std_logic_vector(7 downto 0) := x"34";
-	constant REGADR_WR_DECIMATION_RATE      : std_logic_vector(7 downto 0) := x"38";
+	constant REGADR_RD_WR_DECIMATION_RATE   : std_logic_vector(7 downto 0) := x"38"; -- GT 11/02/2026
 	constant REGADR_WR_ENABLE_DOUT          : std_logic_vector(7 downto 0) := x"3C";
 	-- REGISTERS
 	signal wb_ack_o_i                  : std_logic                     := '0';
@@ -357,6 +362,7 @@ architecture arch_SKARAB_ADC4x3G_14 of SKARAB_ADC4x3G_14 is
 	signal wb_reg_reset_core           : std_logic                     := '0';
 	signal wb_reg_decimation_rate      : std_logic_vector(2 downto 0)  := "000"; -- GT 31/05/2023 CHANGE TO 3 BIT DECIMATION RATE TO SUPPORT MORE DECIMATION RATES
 	signal wb_reg_resample_enable      : std_logic                     := '0'; -- GT 31/05/2023 ADDED RESAMPLER
+	signal wb_reg_pll_enable           : std_logic                     := '0'; -- GT 10/02/2026
 	signal wb_reg_enable_dout          : std_logic                     := '0';
 	signal wb_stb_i_z                  : std_logic                     := '0';
 	signal wb_stb_i_z2                 : std_logic                     := '0';
@@ -448,7 +454,8 @@ begin
 			wb_reg_reset_core           <= '0';
 			wb_reg_decimation_rate      <= "000"; -- GT 31/05/2023
 			wb_reg_enable_dout          <= '0';
-			wb_reg_resample_enable      <= '0'; -- GT 01/06/2023			
+			wb_reg_resample_enable      <= '0'; -- GT 01/06/2023
+			wb_reg_pll_enable           <= '0'; -- GT 10/02/2026			
 			wb_stb_i_z                  <= '0';
 			wb_stb_i_z2                 <= '0';
 		elsif (rising_edge(wb_clk_i))then
@@ -470,9 +477,10 @@ begin
 						wb_reg_mezzanine_reset <= wb_dat_i(0);
 					when REGADR_WR_RESET_CORE =>
 						wb_reg_reset_core <= wb_dat_i(0);
-					when REGADR_WR_DECIMATION_RATE =>
+					when REGADR_RD_WR_DECIMATION_RATE => -- GT 11/02/2026
 						wb_reg_decimation_rate <= wb_dat_i(2 downto 0); -- GT 31/05/2023
 						wb_reg_resample_enable <= wb_dat_i(16); -- GT 01/06/2023
+						wb_reg_pll_enable <= wb_dat_i(17); -- GT 10/02/2026
 					when REGADR_WR_ENABLE_DOUT =>
 						wb_reg_enable_dout <= wb_dat_i(0);
 					when others =>
@@ -499,7 +507,11 @@ begin
 					when REGADR_RD_ADC_SYNC_REQUEST =>
 						wb_dat_o_reg(3 downto 0)  <= wb_reg_adc_sync_request(3 downto 0);
 						wb_dat_o_reg(31 downto 4) <= "0000000000000000000000000000";
+					when REGADR_RD_WR_DECIMATION_RATE => -- GT 11/02/2026 USED TO INDICATE THAT FW RELIES ON NEW DECIMATE BY 16 JESD MODE
+						wb_dat_o_reg(7 downto 0)  <= X"01";
+						wb_dat_o_reg(31 downto 8) <= X"ABCDEF";
 					when others =>
+						wb_dat_o_reg <= (others => '0'); -- GT 11/02/2026
 				end case;
 			end if;
 				
@@ -802,7 +814,7 @@ begin
 		ADC_DATA_CLOCK   => DSP_CLK_IN,
 		ADC_DATA_OUT     => ADC0_DATA_OUT,
 		ADC_DATA_VAL_OUT => ADC0_DATA_VAL_OUT_i,
-		ADC_PLL_ARESET   => adc_pll_reset,
+		ADC_PLL_ARESET   => adc_pll_reset_i, -- GT 10/02/2026 adc_pll_reset,
 		ADC_PLL_LOCKED   => adc_rx_reset_n,
 		STATUS_O         => adc0_status,
 		GBXF_RDEN_OUT    => adc0_gbxf_rden_out,
@@ -997,15 +1009,39 @@ begin
 -------------------------------------------------------------------------
 -- ADC PLL
 -------------------------------------------------------------------------
-	adc_pll2_i : adc_pll2
-    port map ( 
-        clk_in1  => adc_user_clk,
-        clk_out1 => adc_clk_187p5MHz,
-        reset    => adc_pll_reset,
-        locked   => adc_pll_locked);
+	
+-- GT 10/02/2026 CHANGE DECIMATE BY 16 TO USE SAME JESD MODE AS DECIMATE BY 8, REQUIRES PLL TO MULTIPLY USER CLOCK BY 2	
+--	adc_pll2_i : adc_pll2
+--    port map ( 
+--        clk_in1  => adc_user_clk,
+--        clk_out1 => adc_clk_187p5MHz,
+--        reset    => adc_pll_reset,
+--        locked   => adc_pll_locked);
+        
 	ADC_DATA_CLOCK_OUT <= adc_clk_187p5MHz;
 	ADC_DATA_RESET_OUT <= not adc_pll_locked;
-	-- ADC_DATA_CLOCK_OUT <= '0';
-	-- ADC_DATA_RESET_OUT <= '0';
+
+    -- ONLY USE PLL WHEN RUNNING IN DECIMATE BY 16 OR MORE
+	adc_pll_reset <= '1' when (wb_reg_pll_enable = '0') else adc_pll_reset_i;
+    
+    adc_pll2_i : adc_pll2
+    port map ( 
+        clk_in1  => adc_user_clk,
+        clk_out1 => adc_user_clk_mult2,
+        reset    => adc_pll_reset,
+        locked   => adc_pll_locked_i);
+    
+    adc_pll_locked <= (not adc_pll_reset_i) when (wb_reg_pll_enable = '0') else adc_pll_locked_i; 
+        
+	-- SELECT BETWEEN USER CLOCK (DEC 4, 8) AND USER CLOCK x 2 (DEC 16, ETC)
+    BUFGMUX_adc_clk_sel : BUFGMUX
+    port map (
+        O  => adc_clk_187p5MHz,
+        I0 => adc_user_clk,
+        I1 => adc_user_clk_mult2,
+        S  => adc_clk_sel);
+        
+    -- SELECT MULT 2 WHEN IN DECIMATE BY 16 OR MORE
+    adc_clk_sel <= '0' when ((wb_reg_decimation_rate = "000")or(wb_reg_decimation_rate = "001")) else '1';
 	
 end arch_SKARAB_ADC4x3G_14;
