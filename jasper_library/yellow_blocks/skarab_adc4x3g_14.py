@@ -254,8 +254,9 @@ class skarab_adc4x3g_14(YellowBlock):
         # -------------------------------------
         # PBLOCKS
         # -------------------------------------
+        cons.append(RawConstraint('set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets '+self.fullname+'/ADC32RF45_7G5_DEC4_RX_0/ADC32RF45_7G5_DEC4_RX_PHY_i/ADC_GT_SUPPPORT_inst/GT_RXUSRCLK2_OUT]'))
         cons.append(RawConstraint('create_pblock MEZ%s_ADC32RF45_7G5_DEC4_RX_0' % self.mez))
-        cons.append(RawConstraint('add_cells_to_pblock [get_pblocks MEZ%s_ADC32RF45_7G5_DEC4_RX_0]' % self.mez + ' [get_cells -quiet [list '+self.fullname+'/ADC32RF45_7G5_DEC4_RX_0/ADC32RF45_7G5_DEC4_RX_PHY_i/ADC_GT_SUPPPORT_inst/GT0_RXOUTCLK_BUFG]]'))
+        cons.append(RawConstraint('add_cells_to_pblock [get_pblocks MEZ%s_ADC32RF45_7G5_DEC4_RX_0]' % self.mez + ' [get_cells -quiet [list '+self.fullname+'/ADC32RF45_7G5_DEC4_RX_0/ADC32RF45_7G5_DEC4_RX_PHY_i/ADC_GT_SUPPPORT_inst/GT0_RXOUTCLK_BUFG '+self.fullname+'/BUFGMUX_adc_clk_sel]]'))
         if self.mez == 0:
             cons.append(RawConstraint('resize_pblock [get_pblocks MEZ%s_ADC32RF45_7G5_DEC4_RX_0]' % self.mez + ' -add {CLOCKREGION_X0Y4:CLOCKREGION_X0Y4}'))
         elif self.mez == 1:
