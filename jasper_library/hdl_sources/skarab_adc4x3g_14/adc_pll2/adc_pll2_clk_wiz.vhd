@@ -55,12 +55,12 @@
 --  Output     Output      Phase    Duty Cycle   Pk-to-Pk     Phase
 --   Clock     Freq (MHz)  (degrees)    (%)     Jitter (ps)  Error (ps)
 ------------------------------------------------------------------------------
--- CLK_OUT1___187.500______0.000______50.0_______99.140_____89.549
+-- CLK_OUT1___187.500______0.000______50.0______115.772_____97.991
 --
 ------------------------------------------------------------------------------
 -- Input Clock   Freq (MHz)    Input Jitter (UI)
 ------------------------------------------------------------------------------
--- __primary___________187.5____________0.010
+-- __primary___________93.75____________0.010
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -136,14 +136,14 @@ begin
     COMPENSATION         => "ZHOLD",
     STARTUP_WAIT         => FALSE,
     DIVCLK_DIVIDE        => 1,
-    CLKFBOUT_MULT_F      => 5.375,
+    CLKFBOUT_MULT_F      => 10.750,
     CLKFBOUT_PHASE       => 0.000,
     CLKFBOUT_USE_FINE_PS => FALSE,
     CLKOUT0_DIVIDE_F     => 5.375,
     CLKOUT0_PHASE        => 0.000,
     CLKOUT0_DUTY_CYCLE   => 0.500,
     CLKOUT0_USE_FINE_PS  => FALSE,
-    CLKIN1_PERIOD        => 5.333)
+    CLKIN1_PERIOD        => 10.667)
   port map
     -- Output clocks
    (
