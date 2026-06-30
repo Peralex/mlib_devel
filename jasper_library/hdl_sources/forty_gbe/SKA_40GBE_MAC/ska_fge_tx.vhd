@@ -680,7 +680,7 @@ begin
     ska_tx_packet_fifo_0 : ska_tx_packet_fifo
     port map(
         wr_rst      => app_rst,
-        rd_rst      => mac_rst,
+        rd_rst      => app_rst, -- GT 29/06/2026 mac_rst,
         wr_clk      => app_clk,
         rd_clk      => mac_clk,
         din         => app_tx_data_din,
@@ -738,7 +738,7 @@ begin
     ska_tx_packet_ctrl_fifo_0 : ska_tx_packet_ctrl_fifo
     port map(
         wr_rst      => app_rst,
-        rd_rst      => mac_rst,
+        rd_rst      => app_rst, -- GT 29/06/2026 mac_rst,
         wr_clk      => app_clk,
         rd_clk      => mac_clk,
         din         => app_tx_ctrl_din,
