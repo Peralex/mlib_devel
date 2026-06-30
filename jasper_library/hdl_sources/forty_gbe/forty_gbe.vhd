@@ -293,7 +293,7 @@ architecture arch_forty_gbe of forty_gbe is
     --attribute ASYNC_REG of sFortyGbeRstD1 : signal is "TRUE";
     --attribute ASYNC_REG of sFortyGbeRstD2 : signal is "TRUE"; 
     
-    --signal sUserCombRst : std_logic;
+    signal sUserCombRst : std_logic; -- GT 29/06/2026
     --signal sSysCombRst : std_logic;
    
 begin
@@ -327,7 +327,8 @@ begin
     --   end if;
     --end process pCDC40GbEResetSynchroniser; 
     
-    --sUserCombRst <= user_rst or forty_gbe_rst;
+    -- GT 29/06/2026 FIX ISSUE WHERE MAC FIFO HAS DATA IN AFTER LOSS OF CLOCK    
+    sUserCombRst <= user_rst or forty_gbe_rst;
     --sSysCombRst <= sys_rst or sFortyGbeRstD2;
 
     -- WISHBONE SLAVE 10 - 40GBE MAC 0
@@ -344,7 +345,7 @@ begin
         RX_CRC_CHK_ENABLE => RX_CRC_CHK_ENABLE)
     port map(
         clk => user_clk,
-        rst => user_rst,
+        rst => sUserCombRst, -- GT 29/06/2026 user_rst,
         tx_valid            => xlgmii_tx_valid,
         tx_end_of_frame     => xlgmii_tx_end_of_frame,
         tx_data             => xlgmii_tx_data,
