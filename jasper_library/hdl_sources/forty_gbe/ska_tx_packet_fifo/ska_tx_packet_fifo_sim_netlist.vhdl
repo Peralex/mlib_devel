@@ -1,10 +1,10 @@
 -- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
--- Tool Version: Vivado v.2019.1.1 (lin64) Build 2580384 Sat Jun 29 08:04:45 MDT 2019
--- Date        : Thu Jul 16 19:31:38 2020
--- Host        : adam-cm running 64-bit Ubuntu 16.04.6 LTS
+-- Tool Version: Vivado v.2019.1 (lin64) Build 2552052 Fri May 24 14:47:09 MDT 2019
+-- Date        : Mon Jun 29 08:10:52 2026
+-- Host        : hwdev-xbs2 running 64-bit Ubuntu 16.04.7 LTS
 -- Command     : write_vhdl -force -mode funcsim
---               /home/aisaacson/work/git_work/ska-sa/wes/mlib_devel/jasper_library/test_models/skarab_fgbe/myproj/myproj.srcs/sources_1/ip/ska_tx_packet_fifo/ska_tx_packet_fifo_sim_netlist.vhdl
+--               /home/clifford/telespazio/twox8192spectddc/twox8192spectddc/myproj/myproj.srcs/sources_1/ip/ska_tx_packet_fifo/ska_tx_packet_fifo_sim_netlist.vhdl
 -- Design      : ska_tx_packet_fifo
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -3822,11 +3822,11 @@ entity ska_tx_packet_fifo_wr_pf_as is
 end ska_tx_packet_fifo_wr_pf_as;
 
 architecture STRUCTURE of ska_tx_packet_fifo_wr_pf_as is
-  signal diff_pntr : STD_LOGIC_VECTOR ( 8 downto 0 );
+  signal diff_pntr : STD_LOGIC_VECTOR ( 8 downto 1 );
   signal \gpf1.prog_full_i_i_1_n_0\ : STD_LOGIC;
   signal \gpf1.prog_full_i_i_2_n_0\ : STD_LOGIC;
   signal \gpf1.prog_full_i_i_3_n_0\ : STD_LOGIC;
-  signal plusOp : STD_LOGIC_VECTOR ( 9 downto 1 );
+  signal plusOp : STD_LOGIC_VECTOR ( 9 downto 2 );
   signal \plusOp_carry__0_n_0\ : STD_LOGIC;
   signal \plusOp_carry__0_n_1\ : STD_LOGIC;
   signal \plusOp_carry__0_n_2\ : STD_LOGIC;
@@ -3836,21 +3836,11 @@ architecture STRUCTURE of ska_tx_packet_fifo_wr_pf_as is
   signal plusOp_carry_n_2 : STD_LOGIC;
   signal plusOp_carry_n_3 : STD_LOGIC;
   signal \^prog_full\ : STD_LOGIC;
+  signal NLW_plusOp_carry_O_UNCONNECTED : STD_LOGIC_VECTOR ( 0 to 0 );
   signal \NLW_plusOp_carry__1_CO_UNCONNECTED\ : STD_LOGIC_VECTOR ( 3 downto 0 );
   signal \NLW_plusOp_carry__1_O_UNCONNECTED\ : STD_LOGIC_VECTOR ( 3 downto 1 );
 begin
   prog_full <= \^prog_full\;
-\gdiff.diff_pntr_pad_reg[1]\: unisim.vcomponents.FDCE
-    generic map(
-      INIT => '0'
-    )
-        port map (
-      C => wr_clk,
-      CE => '1',
-      CLR => wr_rst,
-      D => plusOp(1),
-      Q => diff_pntr(0)
-    );
 \gdiff.diff_pntr_pad_reg[2]\: unisim.vcomponents.FDCE
     generic map(
       INIT => '0'
@@ -3939,39 +3929,38 @@ begin
       D => plusOp(9),
       Q => diff_pntr(8)
     );
-\gpf1.prog_full_i_i_1\: unisim.vcomponents.LUT5
+\gpf1.prog_full_i_i_1\: unisim.vcomponents.LUT6
     generic map(
-      INIT => X"0F010001"
+      INIT => X"00FF001000000010"
     )
         port map (
       I0 => \gpf1.prog_full_i_i_2_n_0\,
       I1 => \gpf1.prog_full_i_i_3_n_0\,
-      I2 => \gpf1.prog_full_i_reg_0\,
-      I3 => \gpf1.prog_full_i_reg_1\,
-      I4 => \^prog_full\,
+      I2 => diff_pntr(5),
+      I3 => \gpf1.prog_full_i_reg_0\,
+      I4 => \gpf1.prog_full_i_reg_1\,
+      I5 => \^prog_full\,
       O => \gpf1.prog_full_i_i_1_n_0\
     );
-\gpf1.prog_full_i_i_2\: unisim.vcomponents.LUT5
+\gpf1.prog_full_i_i_2\: unisim.vcomponents.LUT2
     generic map(
-      INIT => X"777FFFFF"
+      INIT => X"7"
     )
         port map (
-      I0 => diff_pntr(7),
-      I1 => diff_pntr(6),
-      I2 => diff_pntr(1),
-      I3 => diff_pntr(0),
-      I4 => diff_pntr(8),
+      I0 => diff_pntr(6),
+      I1 => diff_pntr(7),
       O => \gpf1.prog_full_i_i_2_n_0\
     );
-\gpf1.prog_full_i_i_3\: unisim.vcomponents.LUT4
+\gpf1.prog_full_i_i_3\: unisim.vcomponents.LUT5
     generic map(
-      INIT => X"7FFF"
+      INIT => X"55557FFF"
     )
         port map (
-      I0 => diff_pntr(3),
-      I1 => diff_pntr(2),
-      I2 => diff_pntr(5),
-      I3 => diff_pntr(4),
+      I0 => diff_pntr(8),
+      I1 => diff_pntr(1),
+      I2 => diff_pntr(3),
+      I3 => diff_pntr(2),
+      I4 => diff_pntr(4),
       O => \gpf1.prog_full_i_i_3_n_0\
     );
 \gpf1.prog_full_i_reg\: unisim.vcomponents.FDPE
@@ -3994,7 +3983,8 @@ plusOp_carry: unisim.vcomponents.CARRY4
       CO(0) => plusOp_carry_n_3,
       CYINIT => E(0),
       DI(3 downto 0) => Q(3 downto 0),
-      O(3 downto 0) => plusOp(4 downto 1),
+      O(3 downto 1) => plusOp(4 downto 2),
+      O(0) => NLW_plusOp_carry_O_UNCONNECTED(0),
       S(3 downto 0) => S(3 downto 0)
     );
 \plusOp_carry__0\: unisim.vcomponents.CARRY4
@@ -8587,7 +8577,7 @@ entity ska_tx_packet_fifo_fifo_generator_v13_2_4 is
   attribute C_PROG_EMPTY_TYPE_WRCH : integer;
   attribute C_PROG_EMPTY_TYPE_WRCH of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 0;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL : integer;
-  attribute C_PROG_FULL_THRESH_ASSERT_VAL of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 511;
+  attribute C_PROG_FULL_THRESH_ASSERT_VAL of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 496;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_AXIS : integer;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_AXIS of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 1023;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_RACH : integer;
@@ -8601,7 +8591,7 @@ entity ska_tx_packet_fifo_fifo_generator_v13_2_4 is
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_WRCH : integer;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_WRCH of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 1023;
   attribute C_PROG_FULL_THRESH_NEGATE_VAL : integer;
-  attribute C_PROG_FULL_THRESH_NEGATE_VAL of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 510;
+  attribute C_PROG_FULL_THRESH_NEGATE_VAL of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 495;
   attribute C_PROG_FULL_TYPE : integer;
   attribute C_PROG_FULL_TYPE of ska_tx_packet_fifo_fifo_generator_v13_2_4 : entity is 1;
   attribute C_PROG_FULL_TYPE_AXIS : integer;
@@ -9298,7 +9288,7 @@ entity ska_tx_packet_fifo is
   attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of ska_tx_packet_fifo : entity is "yes";
   attribute x_core_info : string;
-  attribute x_core_info of ska_tx_packet_fifo : entity is "fifo_generator_v13_2_4,Vivado 2019.1.1";
+  attribute x_core_info of ska_tx_packet_fifo : entity is "fifo_generator_v13_2_4,Vivado 2019.1";
 end ska_tx_packet_fifo;
 
 architecture STRUCTURE of ska_tx_packet_fifo is
@@ -9694,7 +9684,7 @@ architecture STRUCTURE of ska_tx_packet_fifo is
   attribute C_PROG_EMPTY_TYPE_WRCH : integer;
   attribute C_PROG_EMPTY_TYPE_WRCH of U0 : label is 0;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL : integer;
-  attribute C_PROG_FULL_THRESH_ASSERT_VAL of U0 : label is 511;
+  attribute C_PROG_FULL_THRESH_ASSERT_VAL of U0 : label is 496;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_AXIS : integer;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_AXIS of U0 : label is 1023;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_RACH : integer;
@@ -9708,7 +9698,7 @@ architecture STRUCTURE of ska_tx_packet_fifo is
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_WRCH : integer;
   attribute C_PROG_FULL_THRESH_ASSERT_VAL_WRCH of U0 : label is 1023;
   attribute C_PROG_FULL_THRESH_NEGATE_VAL : integer;
-  attribute C_PROG_FULL_THRESH_NEGATE_VAL of U0 : label is 510;
+  attribute C_PROG_FULL_THRESH_NEGATE_VAL of U0 : label is 495;
   attribute C_PROG_FULL_TYPE : integer;
   attribute C_PROG_FULL_TYPE of U0 : label is 1;
   attribute C_PROG_FULL_TYPE_AXIS : integer;

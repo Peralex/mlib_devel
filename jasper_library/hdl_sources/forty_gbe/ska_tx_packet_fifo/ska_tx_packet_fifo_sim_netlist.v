@@ -1,10 +1,10 @@
 // Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
-// Tool Version: Vivado v.2019.1.1 (lin64) Build 2580384 Sat Jun 29 08:04:45 MDT 2019
-// Date        : Thu Jul 16 19:31:38 2020
-// Host        : adam-cm running 64-bit Ubuntu 16.04.6 LTS
+// Tool Version: Vivado v.2019.1 (lin64) Build 2552052 Fri May 24 14:47:09 MDT 2019
+// Date        : Mon Jun 29 08:10:52 2026
+// Host        : hwdev-xbs2 running 64-bit Ubuntu 16.04.7 LTS
 // Command     : write_verilog -force -mode funcsim
-//               /home/aisaacson/work/git_work/ska-sa/wes/mlib_devel/jasper_library/test_models/skarab_fgbe/myproj/myproj.srcs/sources_1/ip/ska_tx_packet_fifo/ska_tx_packet_fifo_sim_netlist.v
+//               /home/clifford/telespazio/twox8192spectddc/twox8192spectddc/myproj/myproj.srcs/sources_1/ip/ska_tx_packet_fifo/ska_tx_packet_fifo_sim_netlist.v
 // Design      : ska_tx_packet_fifo
 // Purpose     : This verilog netlist is a functional simulation representation of the design and should not be modified
 //               or synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -12,7 +12,7 @@
 // --------------------------------------------------------------------------------
 `timescale 1 ps / 1 ps
 
-(* CHECK_LICENSE_TYPE = "ska_tx_packet_fifo,fifo_generator_v13_2_4,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "fifo_generator_v13_2_4,Vivado 2019.1.1" *) 
+(* CHECK_LICENSE_TYPE = "ska_tx_packet_fifo,fifo_generator_v13_2_4,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "fifo_generator_v13_2_4,Vivado 2019.1" *) 
 (* NotValidForBitStream *)
 module ska_tx_packet_fifo
    (wr_clk,
@@ -309,14 +309,14 @@ module ska_tx_packet_fifo
   (* C_PROG_EMPTY_TYPE_WACH = "0" *) 
   (* C_PROG_EMPTY_TYPE_WDCH = "0" *) 
   (* C_PROG_EMPTY_TYPE_WRCH = "0" *) 
-  (* C_PROG_FULL_THRESH_ASSERT_VAL = "511" *) 
+  (* C_PROG_FULL_THRESH_ASSERT_VAL = "496" *) 
   (* C_PROG_FULL_THRESH_ASSERT_VAL_AXIS = "1023" *) 
   (* C_PROG_FULL_THRESH_ASSERT_VAL_RACH = "1023" *) 
   (* C_PROG_FULL_THRESH_ASSERT_VAL_RDCH = "1023" *) 
   (* C_PROG_FULL_THRESH_ASSERT_VAL_WACH = "1023" *) 
   (* C_PROG_FULL_THRESH_ASSERT_VAL_WDCH = "1023" *) 
   (* C_PROG_FULL_THRESH_ASSERT_VAL_WRCH = "1023" *) 
-  (* C_PROG_FULL_THRESH_NEGATE_VAL = "510" *) 
+  (* C_PROG_FULL_THRESH_NEGATE_VAL = "495" *) 
   (* C_PROG_FULL_TYPE = "1" *) 
   (* C_PROG_FULL_TYPE_AXIS = "0" *) 
   (* C_PROG_FULL_TYPE_RACH = "0" *) 
@@ -3484,9 +3484,9 @@ endmodule
 (* C_PROG_EMPTY_THRESH_ASSERT_VAL_WRCH = "1022" *) (* C_PROG_EMPTY_THRESH_NEGATE_VAL = "5" *) (* C_PROG_EMPTY_TYPE = "0" *) 
 (* C_PROG_EMPTY_TYPE_AXIS = "0" *) (* C_PROG_EMPTY_TYPE_RACH = "0" *) (* C_PROG_EMPTY_TYPE_RDCH = "0" *) 
 (* C_PROG_EMPTY_TYPE_WACH = "0" *) (* C_PROG_EMPTY_TYPE_WDCH = "0" *) (* C_PROG_EMPTY_TYPE_WRCH = "0" *) 
-(* C_PROG_FULL_THRESH_ASSERT_VAL = "511" *) (* C_PROG_FULL_THRESH_ASSERT_VAL_AXIS = "1023" *) (* C_PROG_FULL_THRESH_ASSERT_VAL_RACH = "1023" *) 
+(* C_PROG_FULL_THRESH_ASSERT_VAL = "496" *) (* C_PROG_FULL_THRESH_ASSERT_VAL_AXIS = "1023" *) (* C_PROG_FULL_THRESH_ASSERT_VAL_RACH = "1023" *) 
 (* C_PROG_FULL_THRESH_ASSERT_VAL_RDCH = "1023" *) (* C_PROG_FULL_THRESH_ASSERT_VAL_WACH = "1023" *) (* C_PROG_FULL_THRESH_ASSERT_VAL_WDCH = "1023" *) 
-(* C_PROG_FULL_THRESH_ASSERT_VAL_WRCH = "1023" *) (* C_PROG_FULL_THRESH_NEGATE_VAL = "510" *) (* C_PROG_FULL_TYPE = "1" *) 
+(* C_PROG_FULL_THRESH_ASSERT_VAL_WRCH = "1023" *) (* C_PROG_FULL_THRESH_NEGATE_VAL = "495" *) (* C_PROG_FULL_TYPE = "1" *) 
 (* C_PROG_FULL_TYPE_AXIS = "0" *) (* C_PROG_FULL_TYPE_RACH = "0" *) (* C_PROG_FULL_TYPE_RDCH = "0" *) 
 (* C_PROG_FULL_TYPE_WACH = "0" *) (* C_PROG_FULL_TYPE_WDCH = "0" *) (* C_PROG_FULL_TYPE_WRCH = "0" *) 
 (* C_RACH_TYPE = "0" *) (* C_RDCH_TYPE = "0" *) (* C_RD_DATA_COUNT_WIDTH = "9" *) 
@@ -7966,7 +7966,7 @@ module ska_tx_packet_fifo_wr_pf_as
   wire [0:0]E;
   wire [7:0]Q;
   wire [3:0]S;
-  wire [8:0]diff_pntr;
+  wire [8:1]diff_pntr;
   wire [3:0]\gdiff.diff_pntr_pad_reg[8]_0 ;
   wire [0:0]\gdiff.diff_pntr_pad_reg[9]_0 ;
   wire \gpf1.prog_full_i_i_1_n_0 ;
@@ -7975,7 +7975,7 @@ module ska_tx_packet_fifo_wr_pf_as
   wire \gpf1.prog_full_i_reg_0 ;
   wire \gpf1.prog_full_i_reg_1 ;
   wire out;
-  wire [9:1]plusOp;
+  wire [9:2]plusOp;
   wire plusOp_carry__0_n_0;
   wire plusOp_carry__0_n_1;
   wire plusOp_carry__0_n_2;
@@ -7987,17 +7987,10 @@ module ska_tx_packet_fifo_wr_pf_as
   wire prog_full;
   wire wr_clk;
   wire wr_rst;
+  wire [0:0]NLW_plusOp_carry_O_UNCONNECTED;
   wire [3:0]NLW_plusOp_carry__1_CO_UNCONNECTED;
   wire [3:1]NLW_plusOp_carry__1_O_UNCONNECTED;
 
-  FDCE #(
-    .INIT(1'b0)) 
-    \gdiff.diff_pntr_pad_reg[1] 
-       (.C(wr_clk),
-        .CE(1'b1),
-        .CLR(wr_rst),
-        .D(plusOp[1]),
-        .Q(diff_pntr[0]));
   FDCE #(
     .INIT(1'b0)) 
     \gdiff.diff_pntr_pad_reg[2] 
@@ -8062,31 +8055,30 @@ module ska_tx_packet_fifo_wr_pf_as
         .CLR(wr_rst),
         .D(plusOp[9]),
         .Q(diff_pntr[8]));
-  LUT5 #(
-    .INIT(32'h0F010001)) 
+  LUT6 #(
+    .INIT(64'h00FF001000000010)) 
     \gpf1.prog_full_i_i_1 
        (.I0(\gpf1.prog_full_i_i_2_n_0 ),
         .I1(\gpf1.prog_full_i_i_3_n_0 ),
-        .I2(\gpf1.prog_full_i_reg_0 ),
-        .I3(\gpf1.prog_full_i_reg_1 ),
-        .I4(prog_full),
-        .O(\gpf1.prog_full_i_i_1_n_0 ));
-  LUT5 #(
-    .INIT(32'h777FFFFF)) 
-    \gpf1.prog_full_i_i_2 
-       (.I0(diff_pntr[7]),
-        .I1(diff_pntr[6]),
-        .I2(diff_pntr[1]),
-        .I3(diff_pntr[0]),
-        .I4(diff_pntr[8]),
-        .O(\gpf1.prog_full_i_i_2_n_0 ));
-  LUT4 #(
-    .INIT(16'h7FFF)) 
-    \gpf1.prog_full_i_i_3 
-       (.I0(diff_pntr[3]),
-        .I1(diff_pntr[2]),
         .I2(diff_pntr[5]),
-        .I3(diff_pntr[4]),
+        .I3(\gpf1.prog_full_i_reg_0 ),
+        .I4(\gpf1.prog_full_i_reg_1 ),
+        .I5(prog_full),
+        .O(\gpf1.prog_full_i_i_1_n_0 ));
+  LUT2 #(
+    .INIT(4'h7)) 
+    \gpf1.prog_full_i_i_2 
+       (.I0(diff_pntr[6]),
+        .I1(diff_pntr[7]),
+        .O(\gpf1.prog_full_i_i_2_n_0 ));
+  LUT5 #(
+    .INIT(32'h55557FFF)) 
+    \gpf1.prog_full_i_i_3 
+       (.I0(diff_pntr[8]),
+        .I1(diff_pntr[1]),
+        .I2(diff_pntr[3]),
+        .I3(diff_pntr[2]),
+        .I4(diff_pntr[4]),
         .O(\gpf1.prog_full_i_i_3_n_0 ));
   FDPE #(
     .INIT(1'b1)) 
@@ -8101,7 +8093,7 @@ module ska_tx_packet_fifo_wr_pf_as
         .CO({plusOp_carry_n_0,plusOp_carry_n_1,plusOp_carry_n_2,plusOp_carry_n_3}),
         .CYINIT(E),
         .DI(Q[3:0]),
-        .O(plusOp[4:1]),
+        .O({plusOp[4:2],NLW_plusOp_carry_O_UNCONNECTED[0]}),
         .S(S));
   CARRY4 plusOp_carry__0
        (.CI(plusOp_carry_n_0),
